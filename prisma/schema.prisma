@@ -1,0 +1,164 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ValueType {
+  YES
+  NO
+  PANDDING
+}
+
+model Reaction {
+  id    String    @id @default(cuid())
+  value ValueType @map("value-type")
+
+  commentReaction ReactionComment[]
+  postReaction    ReactionPost[]
+
+  @@map("reactions")
+}
+
+model Request {
+  sender String    @id @default(cuid())
+  user   User?     @relation(fields: [sender], references: [username])
+  value  ValueType @map("value-type")
+}
+
+model User {
+  username  String   @id @default(cuid())
+  firstname String?
+  lastname  String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groups           Group[]
+  freindRequests   FriendRequest[]
+  requests         Request[]
+  posts            Post[]
+  comments         Comment[]
+  commentReactions ReactionComment[]
+  postReactions    ReactionPost[]
+  groupMembers     GroupMember[]
+  participants     Participant[]
+  messages         Message[]
+
+  @@unique(username, name: "User_sender_key")
+  @@map("users")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comment Comment[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [username])
+
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  commentReaction ReactionComment[]
+  postReaction    ReactionPost[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [username])
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@map("comments")
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  owner       User     @relation(fields: [id], references: [username])
+
+  groupMembers GroupMember[]
+
+  @@map("groups")
+}
+
+model ChatRoom {
+  id String @id @default(cuid())
+
+  participants Participant[]
+  messages     Message[]
+
+  @@map("chat-rooms")
+}
+
+model ReactionComment {
+  userId String
+  user   User   @relation(fields: [userId], references: [username])
+
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id])
+
+  reactionComment String   @id @default(cuid())
+  reaction        Reaction @relation(fields: [reactionComment], references: [id], onDelete: Cascade)
+}
+
+model ReactionPost {
+  userId String
+  user   User   @relation(fields: [userId], references: [username])
+
+  postId String
+  post   Comment @relation(fields: [postId], references: [id])
+
+  reactionPost String   @id @default(cuid())
+  reaction     Reaction @relation(fields: [reactionPost], references: [id], onDelete: Cascade)
+}
+
+model FriendRequest {
+  receiver String @id @default(cuid())
+  user     User?  @relation(fields: [receiver], references: [username])
+}
+
+model GroupMember {
+  groupId String @id @default(cuid())
+  group   Group  @relation(fields: [groupId], references: [id])
+  userId  String
+  user    User   @relation(fields: [userId], references: [username])
+}
+
+model Participant {
+  userId     String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [username])
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  sender     String
+  user       User     @relation(fields: [sender], references: [username])
+}
