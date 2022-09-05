@@ -28,14 +28,14 @@ model Reaction {
 
 model Request {
   sender String    @id @default(cuid())
-  user   User?     @relation(fields: [sender], references: [username])
+  user   User?     @relation(fields: [sender], references: [id])
   value  ValueType @map("value-type")
 }
 
 model User {
-  username  String   @id @default(cuid())
-  firstname String?
-  lastname  String?
+  id        String   @id @default(cuid())
+  firstname String
+  lastname  String
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
@@ -52,7 +52,7 @@ model User {
   participants     Participant[]
   messages         Message[]
 
-  @@unique(username, name: "User_sender_key")
+  @@unique(id, name: "User_sender_key")
   @@map("users")
 }
 
@@ -66,7 +66,7 @@ model Post {
   comment Comment[]
 
   userId String
-  user   User   @relation(fields: [userId], references: [username])
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map("posts")
 }
@@ -81,7 +81,7 @@ model Comment {
   postReaction    ReactionPost[]
 
   userId String
-  user   User   @relation(fields: [userId], references: [username])
+  user   User   @relation(fields: [userId], references: [id])
 
   postId String
   post   Post   @relation(fields: [postId], references: [id])
@@ -95,7 +95,7 @@ model Group {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  owner       User     @relation(fields: [id], references: [username])
+  owner       User     @relation(fields: [id], references: [id])
 
   groupMembers GroupMember[]
 
@@ -113,7 +113,7 @@ model ChatRoom {
 
 model ReactionComment {
   userId String
-  user   User   @relation(fields: [userId], references: [username])
+  user   User   @relation(fields: [userId], references: [id])
 
   commentId String
   comment   Comment @relation(fields: [commentId], references: [id])
@@ -124,7 +124,7 @@ model ReactionComment {
 
 model ReactionPost {
   userId String
-  user   User   @relation(fields: [userId], references: [username])
+  user   User   @relation(fields: [userId], references: [id])
 
   postId String
   post   Comment @relation(fields: [postId], references: [id])
@@ -135,19 +135,19 @@ model ReactionPost {
 
 model FriendRequest {
   receiver String @id @default(cuid())
-  user     User?  @relation(fields: [receiver], references: [username])
+  user     User?  @relation(fields: [receiver], references: [id])
 }
 
 model GroupMember {
   groupId String @id @default(cuid())
   group   Group  @relation(fields: [groupId], references: [id])
   userId  String
-  user    User   @relation(fields: [userId], references: [username])
+  user    User   @relation(fields: [userId], references: [id])
 }
 
 model Participant {
   userId     String   @id @default(cuid())
-  user       User     @relation(fields: [userId], references: [username])
+  user       User     @relation(fields: [userId], references: [id])
   chatRoomId String
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
 }
@@ -160,5 +160,5 @@ model Message {
   chatRoomId String
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   sender     String
-  user       User     @relation(fields: [sender], references: [username])
+  user       User     @relation(fields: [sender], references: [id])
 }
