@@ -1,10 +1,8 @@
-import { AuthRepository } from './auth.repository';
+import { AuthRepository } from './repositories/auth.repository';
 import { Injectable } from '@nestjs/common';
-import { RegisterDto } from './dtos/register.dto';
-import { LoginDto } from './dtos';
+import { LoginDto, RegisterDto } from './dtos';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -12,13 +10,13 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
   ) {}
+
   async register(registerDto: RegisterDto) {
-    const user = await this.authRepository.create(registerDto);
-    return user;
+    return this.authRepository.register(registerDto);
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.authRepository.getOne(loginDto);
+    const user = await this.authRepository.login(loginDto);
 
     return this.signToken(user.id, user.email);
   }
