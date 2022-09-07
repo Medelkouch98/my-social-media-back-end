@@ -1,8 +1,8 @@
-import { AuthRepository } from './repositories/auth.repository';
 import { Injectable } from '@nestjs/common';
 import { LoginDto, RegisterDto } from './dtos';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { AuthRepository } from './repositories/auth.repository';
 @Injectable()
 export class AuthService {
   constructor(
