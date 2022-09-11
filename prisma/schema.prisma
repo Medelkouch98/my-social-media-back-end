@@ -16,22 +16,6 @@ enum ValueType {
   PANDDING
 }
 
-model Reaction {
-  id    String    @id @default(cuid())
-  value ValueType @map("value-type")
-
-  commentReaction ReactionComment[]
-  postReaction    ReactionPost[]
-
-  @@map("reactions")
-}
-
-model Request {
-  sender String    @id @default(cuid())
-  user   User?     @relation(fields: [sender], references: [id])
-  value  ValueType @map("value-type")
-}
-
 model User {
   id        String   @id @default(cuid())
   firstname String
@@ -42,13 +26,13 @@ model User {
   updatedAt DateTime @updatedAt
 
   groups           Group[]
-  freindRequests   FriendRequest[]
-  requests         Request[]
+  sentRequests     FriendRequest[]   @relation("sentRequests")
+  receivedRequests FriendRequest[]   @relation("receivedRequests")
   posts            Post[]
   comments         Comment[]
   commentReactions ReactionComment[]
   postReactions    ReactionPost[]
-  groupMembers     GroupMember[]
+  groupRequests    GroupRequest[]
   participants     Participant[]
   messages         Message[]
 
@@ -63,10 +47,9 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  comment Comment[]
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  comment      Comment[]
+  postReaction ReactionPost[]
+  createdBy    User           @relation(fields: [id], references: [id])
 
   @@map("posts")
 }
@@ -79,12 +62,10 @@ model Comment {
 
   commentReaction ReactionComment[]
   postReaction    ReactionPost[]
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
+  createdBy       String
+  user            User              @relation(fields: [createdBy], references: [id])
+  postId          String
+  post            Post              @relation(fields: [postId], references: [id])
 
   @@map("comments")
 }
@@ -97,7 +78,7 @@ model Group {
   updatedAt   DateTime @updatedAt
   owner       User     @relation(fields: [id], references: [id])
 
-  groupMembers GroupMember[]
+  groupRequests GroupRequest[]
 
   @@map("groups")
 }
@@ -112,53 +93,57 @@ model ChatRoom {
 }
 
 model ReactionComment {
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  commentId String
-  comment   Comment @relation(fields: [commentId], references: [id])
-
-  reactionComment String   @id @default(cuid())
-  reaction        Reaction @relation(fields: [reactionComment], references: [id], onDelete: Cascade)
+  reactionComment String    @id @default(cuid())
+  createdBy       String
+  user            User      @relation(fields: [createdBy], references: [id])
+  commentId       String
+  comment         Comment   @relation(fields: [commentId], references: [id])
+  status          ValueType @map("value-type")
 }
 
 model ReactionPost {
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  postId String
-  post   Comment @relation(fields: [postId], references: [id])
-
-  reactionPost String   @id @default(cuid())
-  reaction     Reaction @relation(fields: [reactionPost], references: [id], onDelete: Cascade)
+  reactionPost String    @id @default(cuid())
+  createdBy    String
+  user         User      @relation(fields: [createdBy], references: [id])
+  postId       String
+  post         Post      @relation(fields: [postId], references: [id])
+  commentId    String
+  comment      Comment   @relation(fields: [commentId], references: [id])
+  status       ValueType @map("value-type")
 }
 
 model FriendRequest {
-  receiver String @id @default(cuid())
-  user     User?  @relation(fields: [receiver], references: [id])
+  receiver   User      @relation("receivedRequests", fields: [receiverId], references: [id])
+  receiverId String
+  sender     User?     @relation("sentRequests", fields: [senderId], references: [id])
+  senderId   String
+  status     ValueType @map("value-type")
+
+  @@id([receiverId, senderId])
 }
 
-model GroupMember {
-  groupId String @id @default(cuid())
-  group   Group  @relation(fields: [groupId], references: [id])
-  userId  String
-  user    User   @relation(fields: [userId], references: [id])
+model GroupRequest {
+  groupId String    @id @default(cuid())
+  group   Group     @relation(fields: [groupId], references: [id])
+  sender  String
+  user    User      @relation(fields: [sender], references: [id])
+  status  ValueType @map("value-type")
 }
 
 model Participant {
-  userId     String   @id @default(cuid())
-  user       User     @relation(fields: [userId], references: [id])
-  chatRoomId String
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  userId   String   @id @default(cuid())
+  user     User     @relation(fields: [userId], references: [id])
+  roomId   String
+  chatRoom ChatRoom @relation(fields: [roomId], references: [id])
 }
 
 model Message {
-  id         String   @id @default(cuid())
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  chatRoomId String
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
-  sender     String
-  user       User     @relation(fields: [sender], references: [id])
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roomId    String
+  chatRoom  ChatRoom @relation(fields: [roomId], references: [id])
+  sender    String
+  user      User     @relation(fields: [sender], references: [id])
 }

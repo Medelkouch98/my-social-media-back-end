@@ -1,7 +1,7 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import { TransformInterceptor } from './interceptors/transform.interceptor';
+import { TransformInterceptor, PrismaExceptionFilter } from './interceptors';
 
 const port = parseInt(process.env.PORT);
 const globalPrefix = 'api';
@@ -11,6 +11,7 @@ async function bootstrap() {
   app
     .setGlobalPrefix(globalPrefix)
     .useGlobalInterceptors(new TransformInterceptor())
+    .useGlobalFilters(new PrismaExceptionFilter())
     .useGlobalPipes(
       new ValidationPipe({
         transform: true,

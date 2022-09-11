@@ -32,7 +32,7 @@ export class PrismaAuthRepository extends AuthRepository {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersService.getByEmail(loginDto.email);
+    const user = await this.usersService.getUserByEmail(loginDto.email);
 
     if (!user) {
       throw new ForbiddenException('Invalid credentials');
