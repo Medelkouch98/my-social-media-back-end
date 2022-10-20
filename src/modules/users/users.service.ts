@@ -1,4 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
+import { ConnectionArgsDto } from '../../core/models';
+import { UserRequestsDto } from '../friend-request/dto';
 import { CreateUserDto, EditUserDto, UserDto } from './dto';
 import { UsersRepository } from './users.repository';
 
@@ -17,8 +19,8 @@ export class UsersService {
     return await this.usersRepository.getUserByEmail(email);
   }
 
-  async getUsers(createUserDto: CreateUserDto) {
-    return await this.usersRepository.getUsers(createUserDto);
+  async getUsers(userDto: UserDto, connectionArgsDto: ConnectionArgsDto) {
+    return await this.usersRepository.getUsers(userDto, connectionArgsDto);
   }
 
   async getUserById(userId: string) {

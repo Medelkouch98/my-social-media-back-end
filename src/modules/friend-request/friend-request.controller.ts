@@ -1,4 +1,9 @@
-import { UpdateFriendsRequestsDto } from './dto';
+import { FriendRequestClass, FriendRequestDto } from './dto/friend-request.dto';
+import {
+  CreateFriendRequest,
+  CreateFriendRequestDto,
+  UpdateFriendsRequestsDto,
+} from './dto';
 import {
   Body,
   Controller,
@@ -6,28 +11,62 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { CreateFriendRequestDto } from './dto';
 import { FriendRequestService } from './friend-request.service';
 import { JwtGuard } from '../auth/guard';
 import { GetUser } from '../users/decorator';
 import { User, ValueType } from '@prisma/client';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import {
+  ApiPaginatedResponseDto,
+  ApiResponseDto,
+  ConnectionArgsDto,
+} from '../../core/models';
 
 @UseGuards(JwtGuard)
-@Controller('friend-request')
+@Controller('api/friend-request')
+@ApiTags('friend-request')
 export class FriendRequestController {
   constructor(private readonly friendRequestService: FriendRequestService) {}
 
+  @ApiBearerAuth()
+  @ApiBadRequestResponse()
+  @ApiUnauthorizedResponse()
+  @ApiOkResponse({ type: ApiPaginatedResponseDto(FriendRequestDto) })
   @Get()
-  getUserRequests(@GetUser() user: User) {
-    return this.friendRequestService.getRequests(user.id);
+  getUserRequests(
+    @GetUser() user: User,
+    @Query() connectionArgsDto: ConnectionArgsDto,
+  ) {
+    return this.friendRequestService.getRequests(user.id, connectionArgsDto);
   }
 
-  @Post()
+  @ApiBearerAuth()
+  @ApiBadRequestResponse()
+  @ApiUnauthorizedResponse()
+  @ApiOkResponse({ type: [FriendRequestClass] })
+  @Get('user-sent-requests')
+  getUserSentRequests(@Param('receivedId') receivedId: string) {
+    return this.friendRequestService.getUserReceivedRequests(receivedId);
+  }
+
+  @ApiBearerAuth()
+  @ApiBadRequestResponse()
+  @ApiUnauthorizedResponse()
+  @ApiCreatedResponse({ type: FriendRequestClass })
+  @Post('user-send-request')
   createFriendRequest(
     @GetUser() user: User,
-    @Body() createFriendRequestDto: CreateFriendRequestDto,
+    @Body() createFriendRequestDto: CreateFriendRequest,
   ) {
     return this.friendRequestService.createFriendRequest({
       ...createFriendRequestDto,
@@ -36,6 +75,10 @@ export class FriendRequestController {
     });
   }
 
+  @ApiBearerAuth()
+  @ApiBadRequestResponse()
+  @ApiUnauthorizedResponse()
+  @ApiCreatedResponse({ type: FriendRequestClass })
   @Patch(':senderId')
   updateFriendRequestStatus(
     @Param('senderId') senderId: string,

@@ -1,7 +1,9 @@
-import { UserDto } from './dto/User.dto';
 import { PrismaService } from './../prisma/prisma.service';
 import { Injectable, Delete } from '@nestjs/common';
-import { CreateUserDto, EditUserDto } from './dto';
+import { UserDto, EditUserDto } from './dto';
+import { ConnectionArgsDto } from '../../core/models';
+import { Prisma } from '@prisma/client';
+import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 
 @Injectable()
 export class UsersRepository {
@@ -21,16 +23,38 @@ export class UsersRepository {
     });
   }
 
-  async getUsers(_createUserDto: CreateUserDto) {
-    const user = await this.prisma.user.findMany({
-      where: {
-        ..._createUserDto,
+  async getUsers(userDto: UserDto, connectionArgsDto: ConnectionArgsDto) {
+    const where: Prisma.UserWhereInput = {};
+    const page = await findManyCursorConnection<
+      Prisma.UserGetPayload<Prisma.UserFindManyArgs>,
+      Prisma.UserWhereUniqueInput
+    >(
+      async (args) => {
+        const users = this.prisma.user.findMany({
+          ...args,
+          where: { ...userDto, ...where },
+        });
+        (await users).find((user) => {
+          delete user.password;
+        });
+        return users;
       },
-    });
-    delete user.values().next().value.password;
-    delete user.values().next().value.email;
+      () => {
+        return this.prisma.user.count({
+          where: { ...userDto, ...where },
+        });
+      },
+      connectionArgsDto,
+      {
+        recordToEdge(record) {
+          return {
+            node: record,
+          };
+        },
+      },
+    );
 
-    return user;
+    return page;
   }
 
   async getUserById(userId: string) {
@@ -40,7 +64,6 @@ export class UsersRepository {
       },
     });
     delete user.password;
-    delete user.email;
 
     return user;
   }

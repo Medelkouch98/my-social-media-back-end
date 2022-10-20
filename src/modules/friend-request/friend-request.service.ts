@@ -1,33 +1,38 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { CreateFriendRequestDto, FriendRequestDto } from './dto';
+import { ConnectionArgsDto } from '../../core/models';
+import { FriendRequestDto } from './dto';
 import { FriendRequestRepository } from './friend-request.repository';
 
 @Injectable()
 export class FriendRequestService {
   constructor(private friendRequestRepository: FriendRequestRepository) {}
 
-  async getRequests(userId: string) {
+  async getRequests(userId: string, connectionArgsDto: ConnectionArgsDto) {
     console.log('senderId', userId);
-    return await this.friendRequestRepository.findMany({
+    return await this.friendRequestRepository.findMany(
+      {
+        where: {
+          OR: [
+            {
+              senderId: userId,
+            },
+            {
+              receiverId: userId,
+            },
+          ],
+        },
+      },
+      connectionArgsDto,
+    );
+  }
+
+  async getUserReceivedRequests(receivedId: string) {
+    return await this.friendRequestRepository.findFirst({
       where: {
-        OR: [
-          {
-            senderId: userId,
-          },
-          {
-            receiverId: userId,
-          },
-        ],
+        receiverId: receivedId,
       },
     });
   }
-
-  // async getUserReceivedRequests(receivedId: string) {
-  //   return await this.friendRequestRepository.getUserReceivedRequests(
-  //     receivedId,
-  //   );
-  // }
 
   async createFriendRequest(friendRequestDto: FriendRequestDto) {
     if (friendRequestDto.senderId === friendRequestDto.receiverId)
