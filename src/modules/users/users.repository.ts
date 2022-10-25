@@ -1,10 +1,9 @@
 import { PrismaService } from './../prisma/prisma.service';
-import { Injectable, Delete } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserDto, EditUserDto } from './dto';
 import { ConnectionArgsDto } from '../../core/models';
 import { Prisma } from '@prisma/client';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
-
 @Injectable()
 export class UsersRepository {
   constructor(private prisma: PrismaService) {}
@@ -46,11 +45,9 @@ export class UsersRepository {
       },
       connectionArgsDto,
       {
-        recordToEdge(record) {
-          return {
-            node: record,
-          };
-        },
+        recordToEdge: (record) => ({
+          node: new UserDto(record),
+        }),
       },
     );
 

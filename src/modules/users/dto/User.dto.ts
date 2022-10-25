@@ -1,10 +1,13 @@
-import { OmitEntity } from './../../../helpers/entity';
 import { User } from '@prisma/client';
-import { IsEmail, IsString } from 'class-validator';
+import { IsDate, IsEmail, IsString } from 'class-validator';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../../core/models';
 
-export class UserDto implements OmitEntity<User> {
+export class UserDto implements User {
+  @ApiProperty()
+  @IsString()
+  id: string;
+
   @ApiProperty()
   @IsEmail()
   email: string;
@@ -20,9 +23,21 @@ export class UserDto implements OmitEntity<User> {
   @ApiProperty()
   @IsString()
   password: string;
+
+  @ApiProperty()
+  @IsDate()
+  createdAt: Date;
+
+  @ApiProperty()
+  @IsDate()
+  updatedAt: Date;
+
+  constructor(partial: Partial<UserDto>) {
+    Object.assign(this, partial);
+  }
 }
 
 export class UserClass extends ApiResponseDto(
-  OmitType(UserDto, ['password'] as const),
+  OmitType(UserDto, ['password', 'createdAt', 'updatedAt'] as const),
   true,
 ) {}

@@ -1,9 +1,5 @@
 import { FriendRequestClass, FriendRequestDto } from './dto/friend-request.dto';
-import {
-  CreateFriendRequest,
-  CreateFriendRequestDto,
-  UpdateFriendsRequestsDto,
-} from './dto';
+import { CreateFriendRequest, UpdateFriendsRequestsDto } from './dto';
 import {
   Body,
   Controller,
@@ -22,26 +18,29 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
   ApiPaginatedResponseDto,
-  ApiResponseDto,
   ConnectionArgsDto,
+  PageDto,
 } from '../../core/models';
+import { ApiPageResponse } from '../../core/decorators/api-page-response.decorator';
 
 @UseGuards(JwtGuard)
 @Controller('api/friend-request')
 @ApiTags('friend-request')
+@ApiExtraModels(PageDto, ApiPaginatedResponseDto)
 export class FriendRequestController {
   constructor(private readonly friendRequestService: FriendRequestService) {}
 
   @ApiBearerAuth()
   @ApiBadRequestResponse()
   @ApiUnauthorizedResponse()
-  @ApiOkResponse({ type: ApiPaginatedResponseDto(FriendRequestDto) })
+  @ApiPageResponse(ApiPaginatedResponseDto(FriendRequestDto))
   @Get()
   getUserRequests(
     @GetUser() user: User,

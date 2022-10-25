@@ -1,4 +1,8 @@
-import { ApiPaginatedResponseDto, ConnectionArgsDto } from '../../core/models';
+import {
+  ApiPaginatedResponseDto,
+  ConnectionArgsDto,
+  PageDto,
+} from '../../core/models';
 import {
   Body,
   Controller,
@@ -6,41 +10,45 @@ import {
   Get,
   Param,
   Patch,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtGuard } from '../auth/guard';
-import { UserRequestsDto } from '../friend-request/dto';
-import { CreateUserDto, EditUserDto, UserClass, UserDto } from './dto';
+import { EditUserDto, UserClass, UserDto } from './dto';
 import { UsersService } from './users.service';
+import { ApiPageResponse } from '../../core/decorators/api-page-response.decorator';
 
 @UseGuards(JwtGuard)
 @Controller('users')
 @ApiTags('users')
+@ApiExtraModels(PageDto, ApiPaginatedResponseDto)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Get()
-  @ApiOkResponse({ type: ApiPaginatedResponseDto(UserDto) })
   @ApiBearerAuth()
   @ApiBadRequestResponse()
   @ApiUnauthorizedResponse()
-  getUsers(userDto: UserDto, connectionArgsDto: ConnectionArgsDto) {
+  @ApiOkResponse({ type: ApiPaginatedResponseDto(UserClass) })
+  @ApiPageResponse(ApiPaginatedResponseDto(UserClass))
+  @Get()
+  getUsers(userDto: UserDto, @Query() connectionArgsDto: ConnectionArgsDto) {
     return this.usersService.getUsers(userDto, connectionArgsDto);
   }
 
-  @Get(':id')
-  @ApiOkResponse({ type: UserClass })
   @ApiBearerAuth()
   @ApiBadRequestResponse()
   @ApiUnauthorizedResponse()
+  @ApiOkResponse({ type: UserClass })
+  @Get(':id')
   getUserById(@Param('id') userId: string) {
     return this.usersService.getUserById(userId);
   }

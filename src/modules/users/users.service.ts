@@ -1,7 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConnectionArgsDto } from '../../core/models';
-import { UserRequestsDto } from '../friend-request/dto';
-import { CreateUserDto, EditUserDto, UserDto } from './dto';
+import { EditUserDto, UserDto } from './dto';
 import { UsersRepository } from './users.repository';
 
 @Injectable()

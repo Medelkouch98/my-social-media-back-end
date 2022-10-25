@@ -6,6 +6,7 @@ import { PageInfo } from './page-info.dto';
 export class Page<T> {
   edges: IEdge<T>[];
   pageInfo: PageInfo;
+  totalCount: number;
 }
 
 export function PageDto<Record extends ClassType>(RecordClass: Record) {
@@ -15,6 +16,9 @@ export function PageDto<Record extends ClassType>(RecordClass: Record) {
 
     @ApiProperty()
     pageInfo: PageInfo;
+
+    @ApiProperty()
+    totalCount: number;
   }
   return PartialType(PageClass);
 }

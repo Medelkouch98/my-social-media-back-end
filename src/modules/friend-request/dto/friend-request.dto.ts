@@ -2,6 +2,7 @@ import { ApiResponseDto } from '../../../core/models';
 import { ApiProperty } from '@nestjs/swagger';
 import { FriendRequest, ValueType } from '@prisma/client';
 import { IsDefined, IsEnum, IsObject, IsString } from 'class-validator';
+import { UserDto } from 'src/modules/users/dto';
 
 export class FriendRequestDto implements FriendRequest {
   @ApiProperty()
@@ -28,6 +29,13 @@ export class FriendRequestDto implements FriendRequest {
   @IsEnum(ValueType)
   @IsDefined()
   status: ValueType;
+
+  constructor(partial: Partial<FriendRequestDto>) {
+    Object.assign(this, {
+      sender: partial.sender ? new UserDto(partial.sender) : undefined,
+      receiver: partial.receiver ? new UserDto(partial.receiver) : undefined,
+    });
+  }
 }
 
 export class FriendRequestClass extends ApiResponseDto(

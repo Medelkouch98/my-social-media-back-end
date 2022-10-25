@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { FriendRequestDto, UpdateFriendsRequestsDto } from './dto';
 import { Prisma } from '@prisma/client';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
-import { ConnectionArgsDto, PageDto } from '../../core/models';
+import { ConnectionArgsDto } from '../../core/models';
 
 @Injectable()
 export class FriendRequestRepository {
@@ -41,11 +41,9 @@ export class FriendRequestRepository {
       () => this.prisma.friendRequest.count({ where: where }),
       connectionArgsDto,
       {
-        recordToEdge(record) {
-          return {
-            node: record,
-          };
-        },
+        recordToEdge: (record) => ({
+          node: new FriendRequestDto(record),
+        }),
       },
     );
     return page;
